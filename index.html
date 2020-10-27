@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>CodePen - Todo Demo Template</title>
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0/css/bootstrap.css'>
+  <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+  <!-- partial:index.partial.html -->
+  <div id="app" class="container my-3">
+    <div class="input-group mb-3">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="basic-addon1">待辦事項</span>
+      </div>
+      <input type="text" class="form-control" placeholder="準備要做的任務" @keyup.enter="AddCase" v-model="NewCase">
+      <div class="input-group-append">
+        <button class="btn btn-primary" type="button" @click="AddCase">新增</button>
+      </div>
+    </div>
+    <div class="card text-center">
+      <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs">
+          <li class="nav-item">
+            <a class="nav-link" :class="{'active': Visibility === 'All'}" @click="Visibility = 'All'" href="#">全部</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" :class="{'active': Visibility === 'Processing'}" @click="Visibility = 'Processing'"
+              href="#">進行中</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" :class="{'active': Visibility === 'Completed'}" @click="Visibility = 'Completed'"
+              href="#">已完成</a>
+          </li>
+        </ul>
+      </div>
+      <!--To do list-->
+      <ul class="list-group list-group-flush text-left">
+        <!-- <li class="list-group-item"> -->
+        <li class="list-group-item" v-for="item in FilterCases" @dblclick="EditCase(item)">
+          <div class="d-flex" v-if="item.id !== CurrCase.id">
+            <div class="form-check">
+              <!-- <input type="checkbox" class="form-check-input" id="a1"> -->
+              <input type="checkbox" class="form-check-input" :id="item.id" v-model="item.completed"
+                @keyup.enter="AddCase">
+              <!-- <label class="form-check-label" for="a1"> -->
+              <label class="form-check-label" :class="{'completed': item.completed}" :for="item.id">
+                <!--Cras justo odio-->
+                {{ item.title }}
+              </label>
+            </div>
+            <button type="button" class="close ml-auto" aria-label="Close" @click="RemoveCase(item)">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <input type="text" class="form-control" v-if="item.id === CurrCase.id" v-model="CurrCaseTitle" @keyup.enter="SaveChange(item)" @keyup.esc="CancelEdit">
+        </li>
+        <!-- <li class="list-group-item">
+          <input type="text" class="form-control">
+        </li> -->
+      </ul>
+      <div class="card-footer d-flex justify-content-between">
+        <!-- <span>還有 3 筆任務未完成</span> -->
+        <span>還有 {{WaitToDo}} 筆任務未完成</span>
+        <a href="#" @click="RemoveAll">清除所有任務</a>
+      </div>
+    </div>
+  </div>
+  <!-- partial -->
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.13/vue.js'></script>
+  <script>
+    var ToDoList = new Vue({
+      el: '#app',
+      data: {
+        NewCase: '',
+        ToDoCases: [
+          // {
+          //   id: 'w',
+          //   title: 'What',
+          //   completed: false
+          // }
+        ],
+        Visibility: 'All',
+        CurrCase: {},
+        CurrCaseTitle: {}
+      },
+      methods: {
+        AddCase: function () {
+          var value = this.NewCase;
+          var timespan = Math.floor(Date.now());
+
+          if (!value.trim()) {
+            return;
+          }
+
+          this.ToDoCases.push({
+            id: timespan,
+            title: value,
+            completed: false
+          });
+          this.NewCase = '';
+        },
+        EditCase: function (obj) {
+          this.CurrCase = obj;
+          this.CurrCaseTitle = obj.title;
+        },
+        SaveChange: function (obj) {
+          obj.title = this.CurrCaseTitle;
+          this.CurrCase = '';
+          this.CurrCase = {};
+        },
+        CancelEdit: function () {
+          this.CurrCase = '';
+        },
+        RemoveCase: function (obj) {
+          var Index = this.ToDoCases.findIndex(function (o, idx) {
+            return o.id === obj.id
+          });
+          this.ToDoCases.splice(Index, 1);
+        },
+        RemoveAll: function () {
+          this.ToDoCases.splice(0, this.ToDoCases.length);
+        }
+      },
+      computed: {
+        FilterCases: function () {
+          var DisCases = [];
+          switch (this.Visibility) {
+            case 'Processing':
+              this.ToDoCases.forEach(function (obj) {
+                if (!obj.completed) {
+                  DisCases.push(obj);
+                }
+              });
+              return DisCases;
+            case 'Completed':
+              this.ToDoCases.forEach(function (obj) {
+                if (obj.completed) {
+                  DisCases.push(obj);
+                }
+              });
+              return DisCases;
+            default: return this.ToDoCases;
+          }
+        },
+        WaitToDo: function () {
+          var ToDoList = [];
+          this.ToDoCases.forEach(function (obj) {
+            if (!obj.completed) {
+              ToDoList.push(obj);
+            }
+          });
+
+          return ToDoList.length;
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>
